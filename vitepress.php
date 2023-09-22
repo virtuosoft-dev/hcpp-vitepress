@@ -45,18 +45,32 @@ if ( ! class_exists( 'VitePress') ) {
             // Copy over nodeapp files
             $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
 
+            // Update config.mjs base
+            $config_mjs = file_get_contents( $vitepress_folder . '/.vitepress/config.mjs' );
+            $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
+            file_put_contents( $vitepress_folder . '/.vitepress/config.mjs', $config_mjs );
+
             // Cleanup, allocate ports, prepare nginx and start services
             $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
             $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
-
-            // TODO: write base definition with $vitepress_root
             
-            // TODO: Add vitepress to nginx.conf and nginx.ssl.conf, change existing
-            // location block to include vitepress
-            // location ~ /\.(?!well-known\/|file|vitepress) {
-            //     deny all;
-            //     return 404;
-            // }
+            // Add .vitepress to nginx.conf and nginx.ssl.conf for serving files
+            $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
+            $contents = file_get_contents( $nginx_conf );
+            $contents = str_replace( 
+                'location ~ /\.(?!well-known\/|file) {',
+                'location ~ /\.(?!well-known\/|file|vitepress) {',
+                $contents
+            );
+            file_put_contents( $nginx_conf, $contents );
+            $nginx_ssl_conf = "/home/$user/conf/web/$domain/nginx.ssl.conf";
+            $contents = file_get_contents( $nginx_conf );
+            $contents = str_replace( 
+                'location ~ /\.(?!well-known\/|file) {',
+                'location ~ /\.(?!well-known\/|file|vitepress) {',
+                $contents
+            );
+            file_put_contents( $nginx_ssl_conf, $contents );
 
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
