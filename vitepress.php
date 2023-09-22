@@ -49,6 +49,8 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
             $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
 
+            // TODO: write base definition with $vitepress_root
+            
             // TODO: Add vitepress to nginx.conf and nginx.ssl.conf, change existing
             // location block to include vitepress
             // location ~ /\.(?!well-known\/|file|vitepress) {
