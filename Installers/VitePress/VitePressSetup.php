@@ -1,6 +1,6 @@
 <?php
 
-namespace Hestia\WebApp\Installers\NodeBB;
+namespace Hestia\WebApp\Installers\VitePress;
 use Hestia\WebApp\Installers\BaseSetup as BaseSetup;
 require_once( '/usr/local/hestia/web/pluginable.php' );
 
