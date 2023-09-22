@@ -4,3 +4,9 @@ export DEBIAN_FRONTEND=noninteractive
 ############################################
 # Install VitePress
 ############################################
+# Copy over our Quick Install App
+cd $dir
+rsync -r ./Installers/ /usr/local/hestia/web/src/app/WebApp/Installers/
+
+# Notify installation has finished
+/usr/local/hestia/bin/v-add-user-notification admin "VitePress" "&#x1F4D7; VitePress plugin has finished installing."
