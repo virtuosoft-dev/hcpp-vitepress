@@ -36,7 +36,7 @@ if ( ! class_exists( 'VitePress') ) {
             $cmd .= "chown -R $user:$user " . escapeshellarg( $vitepress_folder );
             $cmd .= 'runuser -l ' . $user . ' -c "cd ' . escapeshellarg( $vitepress_folder ) . ' && ';
             $cmd .= 'export NVM_DIR=/opt/nvm && source /opt/nvm/nvm.sh && nvm use v18 && ';
-            $cmd .= 'npm add -D vitepress';
+            $cmd .= 'npm install vitepress"';
             shell_exec( $cmd );
         }
     }
