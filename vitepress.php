@@ -36,6 +36,9 @@ if ( ! class_exists( 'VitePress') ) {
 
             global $hcpp;
             $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder );
+            $hcpp->log( "VitePress root: $vitepress_root" );
+            $hcpp->log( "VitePress folder: $vitepress_folder" );
+            $hcpp->log( "NodeApp folder: $nodeapp_folder" );
 
             // Create the nodeapp folder and install vitepress
             $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " && ";
