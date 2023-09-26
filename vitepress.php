@@ -93,8 +93,8 @@ if ( ! class_exists( 'VitePress') ) {
             $user = trim($args['user'], "'");
             $shell = $hcpp->run( "list-user $user json")[$user]['SHELL'];
 
-            // Suppress Data loss alert, and PHP version selector
-            $content = '<style>#vstobjects > div > div.u-mt20 > div:nth-child(6),.alert.alert-info{display:none;}</style>' . $content;
+            // Suppress Data loss alert
+            $content = '<style>.alert.alert-info{display:none;}</style>' . $content;
             if ( $shell != 'bash' ) {
 
                 // Display bash requirement
@@ -110,6 +110,12 @@ if ( ! class_exists( 'VitePress') ) {
                 $msg .= 'Cannot contiue. The VitePress Quick Installer requires the NodeApp plugin.</span>';
                 $msg .= '<script>$(function(){$(".l-unit-toolbar__buttonstrip.float-right a").css("display", "none");});</script>';
             }
+            // Remove PHP version selector
+            $msg .= '<script>
+                document.addEventListener("DOMContentLoaded", function() { 
+                    $("label[for=webapp_php_version]").parent().css("display", "none");
+                });
+            </script>';
             if ( strpos( '<div class="app-form">', $content ) !== false ) {
                 $content = str_replace( '<div class="app-form">', '<div class="app-form">' . $msg, $content ); // Hestia 1.6.X
             }else{
