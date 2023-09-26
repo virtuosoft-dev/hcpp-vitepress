@@ -50,10 +50,7 @@ if ( ! class_exists( 'VitePress') ) {
             $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
             file_put_contents( $vitepress_folder . '/.vitepress/config.mjs', $config_mjs );
 
-            // Cleanup, allocate ports, prepare nginx and start services
-            $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
-            $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
-            
+           
             // Add .vitepress to nginx.conf and nginx.ssl.conf for serving files
             $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
             $contents = file_get_contents( $nginx_conf );
@@ -72,6 +69,10 @@ if ( ! class_exists( 'VitePress') ) {
             );
             file_put_contents( $nginx_ssl_conf, $contents );
 
+            // Cleanup, allocate ports, prepare nginx and start services
+            $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
+            $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
+            
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
                 $hcpp->run( "change-web-domain-proxy-tpl $user $domain NodeApp" );
