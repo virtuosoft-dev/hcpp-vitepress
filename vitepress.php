@@ -41,9 +41,9 @@ if ( ! class_exists( 'VitePress') ) {
             $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " && ";
             $cmd .= "chown -R $user:$user " . escapeshellarg( $vitepress_folder );
             $cmd .= 'runuser -l ' . $user . ' -c "cd ' . escapeshellarg( $vitepress_folder ) . ' && ';
-            $cmd .= 'export NVM_DIR=/opt/nvm && source /opt/nvm/nvm.sh && nvm use v18 && ';
-            $cmd .= 'npm install vitepress"';
-            shell_exec( $cmd );
+            $cmd .= 'export NVM_DIR=/opt/nvm && source /opt/nvm/nvm.sh && npm install vitepress"';
+            $hcpp->log( $cmd );
+            $hcpp->log( shell_exec( $cmd ) );
 
             // Copy over nodeapp files
             $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
