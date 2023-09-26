@@ -29,8 +29,11 @@ if ( ! class_exists( 'VitePress') ) {
             $options = json_decode( $args[1], true );
             $user = $options['user'];
             $domain = $options['domain'];
-            $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
             $vitepress_folder = $options['vitepress_folder'];
+            if ( $vitepress_folder == '' || $vitepress_folder[0] != '/' ) $vitepress_folder = '/' . $vitepress_folder;
+            $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
+            $vitepress_folder = $nodeapp_folder . $vitepress_folder;
+
             global $hcpp;
             $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder );
 
