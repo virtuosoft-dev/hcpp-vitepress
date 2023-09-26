@@ -52,9 +52,9 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
 
             // Update config.mjs base
-            $config_mjs = file_get_contents( $vitepress_folder . '/.vitepress/config.mjs' );
+            $config_mjs = file_get_contents( $vitepress_folder . '/docs/.vitepress/config.mjs' );
             $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
-            file_put_contents( $vitepress_folder . '/.vitepress/config.mjs', $config_mjs );
+            file_put_contents( $vitepress_folder . '/docs/.vitepress/config.mjs', $config_mjs );
            
             // Add .vitepress to nginx.conf and nginx.ssl.conf for serving files
             $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
