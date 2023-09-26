@@ -18,7 +18,7 @@ if ( ! class_exists( 'VitePress') ) {
             global $hcpp;
             $hcpp->vitepress = $this;
             $hcpp->add_action( 'hcpp_invoke_plugin', [ $this, 'setup' ] );
-            //$hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
+            $hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
         }
 
         /**
@@ -80,6 +80,43 @@ if ( ! class_exists( 'VitePress') ) {
                 $hcpp->nodeapp->startup_apps( $nodeapp_folder );
                 $hcpp->run( "restart-proxy" );
             }
+        }
+
+        /**
+         * Customize the install page
+         */
+        public function hcpp_render_body( $args ) {
+            global $hcpp;
+            if ( $args['page'] !== 'setup_webapp') return $args;
+            if ( strpos( $_SERVER['REQUEST_URI'], '?app=VitePress' ) === false ) return $args;
+            $content = $args['content'];
+            $user = trim($args['user'], "'");
+            $shell = $hcpp->run( "list-user $user json")[$user]['SHELL'];
+
+            // Suppress Data loss alert, and PHP version selector
+            $content = '<style>#vstobjects > div > div.u-mt20 > div:nth-child(6),.alert.alert-info{display:none;}</style>' . $content;
+            if ( $shell != 'bash' ) {
+
+                // Display bash requirement
+                $content = '<style>.form-group{display:none;}</style>' . $content;
+                $msg = '<div style="margin-top:-20px;width:75%;"><span>';
+                $msg .= 'Cannot contiue. User "' . $user . '" must have bash login ability.</span>';
+                $msg .= '<script>$(function(){$(".l-unit-toolbar__buttonstrip.float-right a").css("display", "none");});</script>';
+            }elseif ( !is_dir('/usr/local/hestia/plugins/nodeapp') ) {
+        
+                // Display missing nodeapp requirement
+                $content = '<style>.form-group{display:none;}</style>' . $content;
+                $msg = '<div style="margin-top:-20px;width:75%;"><span>';
+                $msg .= 'Cannot contiue. The VitePress Quick Installer requires the NodeApp plugin.</span>';
+                $msg .= '<script>$(function(){$(".l-unit-toolbar__buttonstrip.float-right a").css("display", "none");});</script>';
+            }
+            if ( strpos( '<div class="app-form">', $content ) !== false ) {
+                $content = str_replace( '<div class="app-form">', '<div class="app-form">' . $msg, $content ); // Hestia 1.6.X
+            }else{
+                $content = str_replace( '<h1 ', $msg . '<h1 style="padding-bottom:0;" ', $content ); // Hestia 1.7.X
+            }
+            $args['content'] = $content;
+            return $args;
         }
     }
     new VitePress();

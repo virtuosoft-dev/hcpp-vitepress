@@ -26,7 +26,7 @@ Be sure to logout and login again to your Hestia Control Panel as the admin user
 sudo -s
 cd /usr/local/hestia/plugins/vitepress
 ./install
-touch “/usr/local/hestia/data/hcpp/installed/vitepress”
+touch "/usr/local/hestia/data/hcpp/installed/vitepress"
 ```
 
 ## Support the creator
