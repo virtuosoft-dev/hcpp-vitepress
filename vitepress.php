@@ -49,7 +49,6 @@ if ( ! class_exists( 'VitePress') ) {
             $config_mjs = file_get_contents( $vitepress_folder . '/.vitepress/config.mjs' );
             $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
             file_put_contents( $vitepress_folder . '/.vitepress/config.mjs', $config_mjs );
-
            
             // Add .vitepress to nginx.conf and nginx.ssl.conf for serving files
             $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
@@ -96,6 +95,7 @@ if ( ! class_exists( 'VitePress') ) {
 
             // Suppress Data loss alert
             $content = '<style>.alert.alert-info{display:none;}</style>' . $content;
+            $msg = "";
             if ( $shell != 'bash' ) {
 
                 // Display bash requirement
