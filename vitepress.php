@@ -27,10 +27,11 @@ if ( ! class_exists( 'VitePress') ) {
          * Check for flag and add .vitepress to nginx.conf and nginx.ssl.conf on reload
          */
         public function hcpp_nginx_reload( $cmd ) {
+            global $hcpp;
             if ( ! file_exists( '/tmp/vitepress_domains') ) return $cmd;
+            $hcpp->log('FOUND vitepress_domains');
             $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
             unlink ( '/tmp/vitepress_domains' );
-            global $hcpp;
             $hcpp->log( $vitepress_domains );
             foreach ( $vitepress_domains as $vitepress_domain ) {
                 $user = $vitepress_domain['user'];
@@ -68,21 +69,6 @@ if ( ! class_exists( 'VitePress') ) {
         }
 
         /**
-         * Flag to add .vitepress to nginx.conf and nginx.ssl.conf on reload
-         */
-        public function hcpp_new_domain_ready( $args ) {
-            $vitepress_domains = [];
-            $user = $args[0];
-            $domain = $args[1];
-            if ( file_exists( '/tmp/vitepress_domains') ) {
-                $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
-            }
-            $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
-            file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
-            return $args;
-        }
-
-        /**
          * Setup VitePress with the given options
          */
         public function setup( $args ) {
@@ -97,9 +83,6 @@ if ( ! class_exists( 'VitePress') ) {
 
             global $hcpp;
             $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder );
-            $hcpp->log( "VitePress root: $vitepress_root" );
-            $hcpp->log( "VitePress folder: $vitepress_folder" );
-            $hcpp->log( "NodeApp folder: $nodeapp_folder" );
 
             // Create the nodeapp folder and install vitepress
             $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " && ";
@@ -120,7 +103,14 @@ if ( ! class_exists( 'VitePress') ) {
             // Cleanup, allocate ports, prepare nginx and start services
             $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
             $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
-            
+
+            // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
+            if ( file_exists( '/tmp/vitepress_domains') ) {
+                $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
+            }
+            $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
+            file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
+
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
                 $hcpp->run( "change-web-domain-proxy-tpl $user $domain NodeApp" );
