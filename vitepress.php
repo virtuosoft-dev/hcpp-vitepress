@@ -20,42 +20,63 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->add_action( 'hcpp_invoke_plugin', [ $this, 'setup' ] );
             $hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
             $hcpp->add_action( 'hcpp_new_domain_ready', [ $this, 'hcpp_new_domain_ready' ] );
+            $hcpp->add_action( 'hcpp_nginx_reload', [ $this, 'hcpp_nginx_reload' ] );
         }
 
         /**
-         * Add .vitepress to nginx.conf and nginx.ssl.conf for serving files
+         * Check for flag and add .vitepress to nginx.conf and nginx.ssl.conf on reload
+         */
+        public function hcpp_nginx_reload( $cmd ) {
+            if ( ! file_exists( '/tmp/vitepress_domains') ) return $cmd;
+            $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
+            unlink ( '/tmp/vitepress_domains' );
+            foreach ( $vitepress_domains as $vitepress_domain ) {
+                $user = $vitepress_domain['user'];
+                $domain = $vitepress_domain['domain'];
+                global $hcpp;
+                $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
+                if ( file_exists( $nginx_conf ) ) {
+                    $contents = file_get_contents( $nginx_conf );
+                    $contents = str_replace( 
+                        'location ~ /\.(?!well-known\/|file) {',
+                        'location ~ /\.(?!well-known\/|file|vitepress) {',
+                        $contents
+                    );
+                    file_put_contents( $nginx_conf, $contents );
+                    $hcpp->log("Modified $nginx_conf for VitePress");
+                }else{
+                    $hcpp->log("Could not find $nginx_conf for VitePress");
+                }
+
+                $nginx_ssl_conf = "/home/$user/conf/web/$domain/nginx.ssl.conf";
+                if ( file_exists( $nginx_ssl_conf ) ) {
+                    $contents = file_get_contents( $nginx_conf );
+                    $contents = str_replace( 
+                        'location ~ /\.(?!well-known\/|file) {',
+                        'location ~ /\.(?!well-known\/|file|vitepress) {',
+                        $contents
+                    );
+                    file_put_contents( $nginx_ssl_conf, $contents );
+                    $hcpp->log("Modified $nginx_ssl_conf for VitePress");
+                }else{
+                    $hcpp->log("Could not find $nginx_ssl_conf for VitePress");
+                }
+            }
+            return $cmd;
+        }
+
+        /**
+         * Flag to add .vitepress to nginx.conf and nginx.ssl.conf on reload
          */
         public function hcpp_new_domain_ready( $args ) {
-            global $hcpp;
+            $vitepress_domains = [];
             $user = $args[0];
             $domain = $args[1];
-            $nginx_conf = "/home/$user/conf/web/$domain/nginx.conf";
-            if ( file_exists( $nginx_conf ) ) {
-                $contents = file_get_contents( $nginx_conf );
-                $contents = str_replace( 
-                    'location ~ /\.(?!well-known\/|file) {',
-                    'location ~ /\.(?!well-known\/|file|vitepress) {',
-                    $contents
-                );
-                file_put_contents( $nginx_conf, $contents );
-                $hcpp->log("Modified $nginx_conf for VitePress");
-            }else{
-                $hcpp->log("Could not find $nginx_conf for VitePress");
+            if ( file_exists( '/tmp/vitepress_domains') ) {
+                $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
             }
-
-            $nginx_ssl_conf = "/home/$user/conf/web/$domain/nginx.ssl.conf";
-            if ( file_exists( $nginx_ssl_conf ) ) {
-                $contents = file_get_contents( $nginx_conf );
-                $contents = str_replace( 
-                    'location ~ /\.(?!well-known\/|file) {',
-                    'location ~ /\.(?!well-known\/|file|vitepress) {',
-                    $contents
-                );
-                file_put_contents( $nginx_ssl_conf, $contents );
-                $hcpp->log("Modified $nginx_ssl_conf for VitePress");
-            }else{
-                $hcpp->log("Could not find $nginx_ssl_conf for VitePress");
-            }
+            $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
+            file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
             return $args;
         }
 
