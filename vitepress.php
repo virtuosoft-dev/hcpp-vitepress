@@ -30,6 +30,8 @@ if ( ! class_exists( 'VitePress') ) {
             if ( ! file_exists( '/tmp/vitepress_domains') ) return $cmd;
             $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
             unlink ( '/tmp/vitepress_domains' );
+            global $hcpp;
+            $hcpp->log( $vitepress_domains );
             foreach ( $vitepress_domains as $vitepress_domain ) {
                 $user = $vitepress_domain['user'];
                 $domain = $vitepress_domain['domain'];
