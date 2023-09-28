@@ -77,12 +77,16 @@ if ( ! class_exists( 'VitePress') ) {
             $user = $args[0];
             $domain = $args[1];
 
+            // Continue only if vitepress_port on domain
+            if ( $hcpp->get_port( 'vitepress_port', $user, $domain ) == 0 ) return $args;
+
             // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
             if ( file_exists( '/tmp/vitepress_domains') ) {
                 $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
             }
             $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
             file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
+            return $args;
         }
 
         /**
