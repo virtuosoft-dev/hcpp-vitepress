@@ -19,7 +19,6 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->vitepress = $this;
             $hcpp->add_action( 'hcpp_invoke_plugin', [ $this, 'setup' ] );
             $hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
-            $hcpp->add_action( 'hcpp_new_domain_ready', [ $this, 'hcpp_new_domain_ready' ] );
             $hcpp->add_action( 'hcpp_nginx_reload', [ $this, 'hcpp_nginx_reload' ] );
         }
 
