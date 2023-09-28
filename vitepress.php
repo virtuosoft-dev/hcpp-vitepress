@@ -148,6 +148,12 @@ if ( ! class_exists( 'VitePress') ) {
                 $msg = '<div style="margin-top:-20px;width:75%;"><span>';
                 $msg .= 'Cannot contiue. The VitePress Quick Installer requires the NodeApp plugin.</span>';
                 $msg .= '<script>$(function(){$(".l-unit-toolbar__buttonstrip.float-right a").css("display", "none");});</script>';
+            }else{
+                // Display install information
+                $msg = '<div style="margin-top:-20px;width:75%;"><span>';
+                $msg .= 'The VitePress instance lives inside the "nodeapp" folder (adjacent to "public_html"). ';
+                $msg .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
+                $msg .= '<b>Install Directory</b> field below.</span> The specified <b>Install Directory</b> must be non-existent or empty.<br><br>';
             }
             // Remove PHP version selector
             $msg .= '<script>
