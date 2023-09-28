@@ -20,6 +20,8 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->add_action( 'hcpp_invoke_plugin', [ $this, 'setup' ] );
             $hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
             $hcpp->add_action( 'hcpp_nginx_reload', [ $this, 'hcpp_nginx_reload' ] );
+            $hcpp->add_action( 'priv_unsuspend_web_domain', [ $this, 'priv_unsuspend_domain' ] ); // Bulk unsuspend domains only throws this event
+            $hcpp->add_action( 'priv_unsuspend_domain', [ $this, 'priv_unsuspend_domain' ] ); // Individually unsuspend domain only throws this event
         }
 
         /**
@@ -68,6 +70,22 @@ if ( ! class_exists( 'VitePress') ) {
         }
 
         /**
+         * Add flag to add .vitepress to nginx.conf and nginx.ssl.conf on unsuspend
+         */
+        public function priv_unsuspend_domain( $args ) {
+            global $hcpp;
+            $user = $args[0];
+            $domain = $args[1];
+
+            // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
+            if ( file_exists( '/tmp/vitepress_domains') ) {
+                $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
+            }
+            $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
+            file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
+        }
+
+        /**
          * Setup VitePress with the given options
          */
         public function setup( $args ) {
@@ -104,11 +122,7 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
 
             // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
-            if ( file_exists( '/tmp/vitepress_domains') ) {
-                $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
-            }
-            $vitepress_domains[] = [ 'user' => $user, 'domain' => $domain ];
-            file_put_contents( '/tmp/vitepress_domains', json_encode( $vitepress_domains ) );
+            $this->priv_unsuspend_domain( [ $user, $domain ] );
 
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
