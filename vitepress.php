@@ -55,6 +55,7 @@ if ( ! class_exists( 'VitePress') ) {
                 $nginx_ssl_conf = "/home/$user/conf/web/$domain/nginx.ssl.conf";
                 if ( file_exists( $nginx_ssl_conf ) ) {
                     $contents = file_get_contents( $nginx_ssl_conf );
+                    if ( strpos( $contents, 'location ~ /\.(?!well-known\/|file) {' ) === false ) continue;
                     $contents = str_replace( 
                         'location ~ /\.(?!well-known\/|file) {',
                         'location ~ /\.(?!well-known\/|file|vitepress) {',
