@@ -7,7 +7,7 @@ export default defineConfig({
   },
   base: '%base%',
   title: "VitePress Site",
-  description: "A VitePress demo running on CodeGarden.",
+  description: "A VitePress demo running on Devstia.",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
