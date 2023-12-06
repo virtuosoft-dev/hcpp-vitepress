@@ -107,7 +107,8 @@ if ( ! class_exists( 'VitePress') ) {
             $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder );
 
             // Create the nodeapp folder and install vitepress
-            $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " && ";
+            $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " ; ";
+            $cmd .= "chmod 751 " . escapeshellarg( $nodeapp_folder ) . " && ";
             $cmd .= "chown -R $user:$user " . escapeshellarg( $vitepress_folder ) . " && ";
             $cmd .= 'runuser -l ' . $user . ' -c "cd ' . escapeshellarg( $vitepress_folder ) . ' && ';
             $cmd .= 'export NVM_DIR=/opt/nvm && source /opt/nvm/nvm.sh && npm install vitepress"';
