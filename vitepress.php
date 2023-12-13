@@ -108,7 +108,6 @@ if ( ! class_exists( 'VitePress') ) {
 
             // Create the nodeapp folder and install vitepress
             $cmd = "mkdir -p " . escapeshellarg( $vitepress_folder ) . " ; ";
-            $cmd .= "chmod 751 " . escapeshellarg( $nodeapp_folder ) . " && ";
             $cmd .= "chown -R $user:$user " . escapeshellarg( $vitepress_folder ) . " && ";
             $cmd .= 'runuser -l ' . $user . ' -c "cd ' . escapeshellarg( $vitepress_folder ) . ' && ';
             $cmd .= 'export NVM_DIR=/opt/nvm && source /opt/nvm/nvm.sh && npm install vitepress"';
@@ -117,6 +116,7 @@ if ( ! class_exists( 'VitePress') ) {
 
             // Copy over nodeapp files
             $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
+            chmod( $nodeapp_folder, 0751 );
 
             // Update config.mjs base
             $config_mjs = file_get_contents( $vitepress_folder . '/docs/.vitepress/config.mjs' );
