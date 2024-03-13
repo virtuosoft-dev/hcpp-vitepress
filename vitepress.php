@@ -19,9 +19,8 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->vitepress = $this;
             $hcpp->add_action( 'hcpp_invoke_plugin', [ $this, 'setup' ] );
             $hcpp->add_action( 'hcpp_render_body', [ $this, 'hcpp_render_body' ] );
-            $hcpp->add_action( 'hcpp_nginx_reload', [ $this, 'hcpp_nginx_reload' ] );
-            $hcpp->add_action( 'priv_unsuspend_web_domain', [ $this, 'priv_unsuspend_domain' ] ); // Bulk unsuspend domains only throws this event
-            $hcpp->add_action( 'priv_unsuspend_domain', [ $this, 'priv_unsuspend_domain' ] ); // Individually unsuspend domain only throws this event
+            $hcpp->add_action( 'hcpp_nginx_reload', [ $this, 'hcpp_nginx_reload' ], 20 );
+            $hcpp->add_action( 'nodeapp_ports_allocated', [ $this, 'nodeapp_ports_allocated' ] ); // Add vitepress on copy
         }
 
         /**
@@ -32,7 +31,6 @@ if ( ! class_exists( 'VitePress') ) {
             if ( ! file_exists( '/tmp/vitepress_domains') ) return $cmd;
             $hcpp->log('FOUND vitepress_domains');
             $vitepress_domains = json_decode( file_get_contents( '/tmp/vitepress_domains' ), true );
-            unlink ( '/tmp/vitepress_domains' );
             $hcpp->log( $vitepress_domains );
             foreach ( $vitepress_domains as $vitepress_domain ) {
                 $user = $vitepress_domain['user'];
@@ -67,19 +65,23 @@ if ( ! class_exists( 'VitePress') ) {
                     $hcpp->log("Could not find $nginx_ssl_conf for VitePress");
                 }
             }
+            $cmd = str_replace( 'sleep 5', 'sleep 5 && rm /tmp/vitepress_domains', $cmd );
             return $cmd;
         }
 
         /**
-         * Add flag to add .vitepress to nginx.conf and nginx.ssl.conf on unsuspend
+         * Add flag to add .vitepress to nginx.conf and nginx.ssl.conf on port allocation 
          */
-        public function priv_unsuspend_domain( $args ) {
+        public function nodeapp_ports_allocated( $args ) {
             global $hcpp;
-            $user = $args[0];
-            $domain = $args[1];
+            $user = $args['user'];
+            $domain = $args['domain'];
 
             // Continue only if vitepress_port on domain
-            if ( $hcpp->get_port( 'vitepress_port', $user, $domain ) == 0 ) return $args;
+            if ( $hcpp->get_port( 'vitepress_port', $user, $domain ) == 0 ) {
+                $hcpp->log( "No vitepress_port for $user $domain" );
+                return $args;
+            }
 
             // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
             if ( file_exists( '/tmp/vitepress_domains') ) {
@@ -128,7 +130,7 @@ if ( ! class_exists( 'VitePress') ) {
             $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
 
             // Flag to add .vitepress to nginx.conf and nginx.ssl.conf on hcpp_nginx_reload
-            $this->priv_unsuspend_domain( [ $user, $domain ] );
+            $this->nodeapp_ports_allocated( [ 'user' => $user, 'domain' => $domain ] );
 
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
