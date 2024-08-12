@@ -30,7 +30,7 @@ touch "/usr/local/hestia/data/hcpp/installed/vitepress"
 ```
 
 ## Support the creator
-You can help this author’s open source development endeavors by donating any amount to Stephen J. Carnam @ Virtuosoft. Your donation, no matter how large or small helps pay for essential time and resources to create MIT and GPL licensed projects that you and the world can benefit from. Click the link below to donate today :)
+You can help this author's open source development endeavors by donating any amount to Stephen J. Carnam @ Virtuosoft. Your donation, no matter how large or small helps pay for essential time and resources to create MIT and GPL licensed projects that you and the world can benefit from. Click the link below to donate today :)
 <div>
          
 
@@ -40,7 +40,7 @@ You can help this author’s open source development endeavors by donating any a
 </div>
 
 
-<!-—————————————————————————>
+<!---------------------------------------------------------------------------->
 
 [KBD]: https://virtuosoft.com/donate
 
