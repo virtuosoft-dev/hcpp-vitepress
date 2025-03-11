@@ -2,16 +2,18 @@
  * Get compatible PM2 app config object with automatic support for .nvmrc, 
  * port allocation, and debug mode.
  */
-module.exports = {
+ module.exports = {
     apps: (function() {
         let nodeapp = require('/usr/local/hestia/plugins/nodeapp/nodeapp.js')(__filename);
         nodeapp.script = nodeapp.cwd + '/node_modules/vitepress/bin/vitepress.js';
         const fs = require('fs');
+        let args = ' docs --port ' + nodeapp._port + ' --host ' + nodeapp._domain;
         if ( fs.existsSync(nodeapp.cwd + '/.debug') ) {
-            nodeapp.args = 'dev docs --port ' + nodeapp._port + ' --host';
+            args = 'dev' + args;
         }else{
-            nodeapp.args = 'preview docs --port ' + nodeapp._port;
+            args = 'preview' + args;
         }
+        nodeapp.args = args;
         return [nodeapp];
     })()
 }
