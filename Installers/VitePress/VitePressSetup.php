@@ -2,7 +2,6 @@
 
 namespace Hestia\WebApp\Installers\VitePress;
 use Hestia\WebApp\Installers\BaseSetup as BaseSetup;
-require_once( '/usr/local/hestia/web/pluginable.php' );
 
 class VitePressSetup extends BaseSetup {
 	protected $appInfo = [
@@ -25,7 +24,7 @@ class VitePressSetup extends BaseSetup {
 			"nginx" => [],
 			"php" => [
 				"supported" => ["7.3", "7.4", "8.0", "8.1", "8.2"],
-			],
+			]
 		],
 	];
 
@@ -34,7 +33,7 @@ class VitePressSetup extends BaseSetup {
 		$parse = explode( '/', $this->getDocRoot() );
 		$options['user'] = $parse[2];
 		$options['domain'] = $parse[4];
-		$hcpp->run( 'invoke-plugin vitepress_install ' . escapeshellarg( json_encode( $options ) ) );
+		$hcpp->run( 'v-invoke-plugin vitepress_install ' . escapeshellarg( json_encode( $options ) ) );
 		return true;
 	}
 }
