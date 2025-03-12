@@ -31,7 +31,7 @@ if ( ! class_exists( 'VitePress') ) {
                 // Insert html into div.form-container
             }else{
                 $style = '<style>div[role="alert"],#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
-                $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (adjacent to "public_html"). ';
+                $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). ';
                 $html .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
                 $html .= '<b>Install Directory</b> field above.</div>';
             }
@@ -74,7 +74,9 @@ if ( ! class_exists( 'VitePress') ) {
 
             // Update proxy and restart nginx
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
-                $hcpp->run( "v-change-web-domain-proxy-tpl $user $domain NodeApp" );
+                $ext = $hcpp->run( "v-list-web-domain '$user' '$domain' json" )[$domain]['PROXY_EXT'];
+                $ext = str_replace( ' ', ',', $ext );
+                $hcpp->run( "v-change-web-domain-proxy-tpl '$user' '$domain' 'NodeApp' '$ext' 'yes'" );
             }else{
                 $hcpp->nodeapp->generate_nginx_files( $nodeapp_folder );
                 $hcpp->nodeapp->startup_apps( $nodeapp_folder );
@@ -101,7 +103,7 @@ if ( ! class_exists( 'VitePress') ) {
             }
         }
 
-        public function nodeapp_nginx_confs_written_10( $folders ) {
+        public function nodeapp_nginx_confs_written( $folders ) {
             global $hcpp;
             foreach ( $folders as $folder ) {
                 if ( file_exists( $folder . '/nginx.conf_nodeapp' ) ) {
@@ -112,7 +114,6 @@ if ( ! class_exists( 'VitePress') ) {
                     }
                 }
             }
-            $hcpp->run( "v-restart-proxy nodeapp" );
             return $folders;
         }
     }
