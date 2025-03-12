@@ -30,7 +30,7 @@ if ( ! class_exists( 'VitePress') ) {
                 $html = '<span class="u-mb10">Cannot continue. User "' . $username . '" must have bash login ability.</span>';
                 // Insert html into div.form-container
             }else{
-                $style = '<style>#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
+                $style = '<style>div[role="alert"],#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
                 $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (adjacent to "public_html"). ';
                 $html .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
                 $html .= '<b>Install Directory</b> field above.</div>';
@@ -78,31 +78,42 @@ if ( ! class_exists( 'VitePress') ) {
             }else{
                 $hcpp->nodeapp->generate_nginx_files( $nodeapp_folder );
                 $hcpp->nodeapp->startup_apps( $nodeapp_folder );
+                $hcpp->run( "v-restart-proxy" );
             }
-
-            // Update nginx.ssl.conf 404 for .vitepress
-            $this->update_nginx( "/home/$user/conf/web/$domain/nginx.conf" );
-            $this->update_nginx( "/home/$user/conf/web/$domain/nginx.ssl.conf" );
-            $hcpp->run( "v-restart-proxy" );
-        }
+        }       
 
         /**
          * Update the nginx configuration .vitepress
          */
-        public function update_nginx( $nginx_conf ) {
+        public function update_nginx( $file ) {
             global $hcpp;
-            if ( file_exists( $nginx_conf ) ) {
-                $contents = file_get_contents( $nginx_conf );
+            if ( file_exists( $file ) ) {
+                $contents = file_get_contents( $file );
                 $contents = str_replace( 
                     'location ~ /\.(?!well-known\/|file) {',
                     'location ~ /\.(?!well-known\/|file|vitepress) {',
                     $contents
                 );
-                file_put_contents( $nginx_conf, $contents );
-                $hcpp->log("Modified $nginx_conf for VitePress");
+                file_put_contents( $file, $contents );
+                $hcpp->log("Modified $file for VitePress");
             }else{
-                $hcpp->log("Could not find $nginx_conf for VitePress");
+                $hcpp->log("Could not find $file for VitePress");
             }
+        }
+
+        public function nodeapp_nginx_confs_written_10( $folders ) {
+            global $hcpp;
+            foreach ( $folders as $folder ) {
+                if ( file_exists( $folder . '/nginx.conf_nodeapp' ) ) {
+                    $content = file_get_contents( $folder . '/nginx.conf_nodeapp' );                    
+                    if ( strpos( $content, ':$vitepress_port;') !== false ) {
+                        $this->update_nginx( $folder . '/nginx.conf' );
+                        $this->update_nginx( $folder . '/nginx.ssl.conf' );
+                    }
+                }
+            }
+            $hcpp->run( "v-restart-proxy nodeapp" );
+            return $folders;
         }
     }
     global $hcpp;
