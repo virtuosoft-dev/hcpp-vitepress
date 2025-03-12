@@ -52,6 +52,12 @@ if ( ! class_exists( 'VitePress') ) {
             $vitepress_folder = $options['vitepress_folder'];
             if ( $vitepress_folder == '' || $vitepress_folder[0] != '/' ) $vitepress_folder = '/' . $vitepress_folder;
             $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
+
+            // Create parent nodeapp folder first this way to avoid CLI permissions issues
+            mkdir( $nodeapp_folder, 0750, true );
+            chown( $nodeapp_folder, $user );
+            chgrp( $nodeapp_folder, $user );
+
             $vitepress_folder = $nodeapp_folder . $vitepress_folder;
             $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder ); 
 
@@ -76,12 +82,12 @@ if ( ! class_exists( 'VitePress') ) {
             if ( $nodeapp_folder . '/' == $vitepress_folder ) {
                 $ext = $hcpp->run( "v-list-web-domain '$user' '$domain' json" )[$domain]['PROXY_EXT'];
                 $ext = str_replace( ' ', ',', $ext );
-                $hcpp->run( "v-change-web-domain-proxy-tpl '$user' '$domain' 'NodeApp' '$ext' 'yes'" );
+                $hcpp->run( "v-change-web-domain-proxy-tpl '$user' '$domain' 'NodeApp' '$ext' 'no'" );
             }else{
                 $hcpp->nodeapp->generate_nginx_files( $nodeapp_folder );
                 $hcpp->nodeapp->startup_apps( $nodeapp_folder );
-                $hcpp->run( "v-restart-proxy" );
             }
+            //$hcpp->run( "v-restart-proxy" );
         }       
 
         /**
