@@ -31,11 +31,6 @@ if ( ! class_exists( 'VitePress') ) {
                 $style = '<style>div.u-mb10{display:none;}</style>';
                 $html = '<span class="u-mb10">Cannot continue. User "' . $user . '" must have bash login ability.</span>';
             }else{
-                // if ( file_exists( "/home/$user/web/$domain/nodeapp") ) {
-                //     $html = ''
-                // }else{
-                //     $style = '<style>div[role="alert"],#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
-                // }
                 $style = '<style>#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
                 $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). ';
                 $html .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
@@ -52,13 +47,14 @@ if ( ! class_exists( 'VitePress') ) {
             }
 
             // Insert our own alert about non-empty nodeapp folder
-            if ( file_exists( "/home/$user/web/$domain/nodeapp") ) {
+            $folder = "/home/$user/web/$domain/nodeapp";
+            if ( file_exists( $folder ) && iterator_count(new \FilesystemIterator( $folder, \FilesystemIterator::SKIP_DOTS)) > 0 ) {
                 $html = '<div class="alert alert-info u-mb10" role="alert">
                         <i class="fas fa-info"></i>
                         <div>
                             <p class="u-mb10">Data Loss Warning!</p>
-                            <p class="u-mb10">Your web folder already has files uploaded to it. The installer will overwrite your files and/or the installation might fail.</p>
-                            <p>Please make sure ~/web/$domain/nodeapp is empty or the Install Directory does not conflict!</p>
+                            <p class="u-mb10">Your nodeapp folder already has files uploaded to it. The installer will overwrite your files and/or the installation might fail.</p>
+                            <p>Please make sure ~/web/' . $domain . '/nodeapp is empty or an empty subdirectory is specified!</p>
                         </div>
                     </div>';
                 $xpath = $hcpp->insert_html( $xpath, '//div[contains(@class, "form-container")]', $html, true );
@@ -80,7 +76,7 @@ if ( ! class_exists( 'VitePress') ) {
             $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
 
             // Create parent nodeapp folder first this way to avoid CLI permissions issues
-            mkdir( $nodeapp_folder, 0750, true );
+            mkdir( $nodeapp_folder, 0755, true );
             chown( $nodeapp_folder, $user );
             chgrp( $nodeapp_folder, $user );
 
