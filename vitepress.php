@@ -20,23 +20,49 @@ if ( ! class_exists( 'VitePress') ) {
             global $hcpp;
 
             // Check for bash shell user
-            $username = $_SESSION["user"];
+            $user = $_SESSION["user"];
             if ($_SESSION["look"] != "") {
-                $username = $_SESSION["look"];
+                $user = $_SESSION["look"];
             }
-            $shell = $hcpp->run( "v-list-user $username json")[$username]['SHELL'];
+            $domain = $_GET['domain'];
+            $domain = preg_replace('/[^a-zA-Z0-9\.\-]/', '', $domain);
+            $shell = $hcpp->run( "v-list-user $user json")[$user]['SHELL'];
             if ( $shell != 'bash' ) {
                 $style = '<style>div.u-mb10{display:none;}</style>';
-                $html = '<span class="u-mb10">Cannot continue. User "' . $username . '" must have bash login ability.</span>';
-                // Insert html into div.form-container
+                $html = '<span class="u-mb10">Cannot continue. User "' . $user . '" must have bash login ability.</span>';
             }else{
-                $style = '<style>div[role="alert"],#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
+                // if ( file_exists( "/home/$user/web/$domain/nodeapp") ) {
+                //     $html = ''
+                // }else{
+                //     $style = '<style>div[role="alert"],#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
+                // }
+                $style = '<style>#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
                 $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). ';
                 $html .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
                 $html .= '<b>Install Directory</b> field above.</div>';
             }
             $xpath = $hcpp->insert_html( $xpath, '//div[contains(@class, "form-container")]', $html );
             $xpath = $hcpp->insert_html( $xpath, '/html/head', $style );
+
+            // Remove existing public_html related alert if present
+            $alert_div = $xpath->query('//div[@role="alert"][1]');
+            if ( $alert_div->length > 0 ) {
+                $alert_div = $alert_div[0];
+                $alert_div->parentNode->removeChild( $alert_div );
+            }
+
+            // Insert our own alert about non-empty nodeapp folder
+            if ( file_exists( "/home/$user/web/$domain/nodeapp") ) {
+                $html = '<div class="alert alert-info u-mb10" role="alert">
+                        <i class="fas fa-info"></i>
+                        <div>
+                            <p class="u-mb10">Data Loss Warning!</p>
+                            <p class="u-mb10">Your web folder already has files uploaded to it. The installer will overwrite your files and/or the installation might fail.</p>
+                            <p>Please make sure ~/web/$domain/nodeapp is empty or the Install Directory does not conflict!</p>
+                        </div>
+                    </div>';
+                $xpath = $hcpp->insert_html( $xpath, '//div[contains(@class, "form-container")]', $html, true );
+            }
             return $xpath;
         }
 
