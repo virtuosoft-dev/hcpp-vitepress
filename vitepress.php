@@ -11,6 +11,7 @@
 
 if ( ! class_exists( 'VitePress') ) {
     class VitePress extends HCPP_Hooks{
+        public $supported = ['18','19','20','21','22'];
 
         /**
          * Customize VitePress install screen
@@ -32,9 +33,31 @@ if ( ! class_exists( 'VitePress') ) {
                 $html = '<span class="u-mb10">Cannot continue. User "' . $user . '" must have bash login ability.</span>';
             }else{
                 $style = '<style>#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
-                $html = '<div class="u-mb10">The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). ';
-                $html .= 'It can be a standalone instance in the domain root, or in a subfolder using the ';
-                $html .= '<b>Install Directory</b> field above.</div>';
+                $html = '<div class="u-mb10">
+                            <label for="nodeapp_nodjs_version" class="form-label">
+                                NodeJS Version
+							</label>
+                            <select class="form-select" name="nodeapp_nodjs_version" id="nodeapp_nodjs_version">';
+                $nodjs_versions = $hcpp->run( 'v-invoke-plugin nodeapp_get_versions json' );
+                $nvmrc = trim( file_get_contents( __DIR__ . '/nodeapp/.nvmrc' ), "v \n" );
+                foreach ( $nodjs_versions as $version ) {
+                    $major = $hcpp->getLeftMost( $version['installed'], '.' );
+                    if ( in_array( $major, $this->supported ) ) {
+                        if ( $major == $nvmrc ) {
+                            $selected = ' selected';
+                        }else{
+                            $selected = '';
+                        }
+                        $html .= "<option value=\"$major\"$selected>v$major ({$version['installed']})</option>";
+                    }
+                }
+                $html .= '  </select>
+						</div>
+                        <div class="u-mb10">
+                            The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). It can be a
+                            standalone instance in the domain root, or in a subfolder using the <b>Install Directory</b> 
+                            field above.
+                        </div>';
             }
             $xpath = $hcpp->insert_html( $xpath, '//div[contains(@class, "form-container")]', $html );
             $xpath = $hcpp->insert_html( $xpath, '/html/head', $style );
@@ -66,50 +89,110 @@ if ( ! class_exists( 'VitePress') ) {
          * Setup VitePress with the given options
          */
         public function hcpp_invoke_plugin( $args ) {
-            if ( $args[0] != 'vitepress_install' ) return $args;
+            if ( count( $args ) < 0 ) return $args;
             global $hcpp;
-            $options = json_decode( $args[1], true );
-            $user = $options['user'];
-            $domain = $options['domain'];
-            $vitepress_folder = $options['vitepress_folder'];
-            if ( $vitepress_folder == '' || $vitepress_folder[0] != '/' ) $vitepress_folder = '/' . $vitepress_folder;
-            $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
+            
+            // Install VitePress on supported NodeJS versions
+            if ( $args[0] == 'vitepress_install' ) {
 
-            // Create parent nodeapp folder first this way to avoid CLI permissions issues
-            mkdir( $nodeapp_folder, 0755, true );
-            chown( $nodeapp_folder, $user );
-            chgrp( $nodeapp_folder, $user );
+                // Get list of installed and supported NodeJS versions
+                $versions = $hcpp->nodeapp->get_versions();
+                $majors = [];
+                foreach( $versions as $ver ) {
+                    $major = $hcpp->getLeftMost( $ver['installed'], '.' );
+                    if ( in_array( $major, $this->supported ) ) {
+                        $majors[] = $major;
+                    }
+                }
 
-            $vitepress_folder = $nodeapp_folder . $vitepress_folder;
-            $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder ); 
-
-            // Create the nodeapp folder and install vitepress
-            $cmd = "mkdir -p $vitepress_folder ; cd $vitepress_folder && npm install vitepress";
-            $hcpp->runuser( $user, $cmd );
-
-            // Copy over nodeapp files
-            $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
-            chmod( $nodeapp_folder, 0751 );
-
-            // Update config.mjs base
-            $config_mjs = file_get_contents( $vitepress_folder . '/docs/.vitepress/config.mjs' );
-            $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
-            file_put_contents( $vitepress_folder . '/docs/.vitepress/config.mjs', $config_mjs );
-
-            // Cleanup, allocate ports, prepare nginx and start services
-            $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
-            $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
-
-            // Update proxy and restart nginx
-            if ( $nodeapp_folder . '/' == $vitepress_folder ) {
-                $ext = $hcpp->run( "v-list-web-domain '$user' '$domain' json" )[$domain]['PROXY_EXT'];
-                $ext = str_replace( ' ', ',', $ext );
-                $hcpp->run( "v-change-web-domain-proxy-tpl '$user' '$domain' 'NodeApp' '$ext' 'no'" );
-            }else{
-                $hcpp->nodeapp->generate_nginx_files( $nodeapp_folder );
-                $hcpp->nodeapp->startup_apps( $nodeapp_folder );
+                // Install VitePress on supported NodeJS versions
+                $hcpp->nodeapp->do_maintenance( $majors, function( $stopped ) use( $hcpp, $majors ) {
+                    foreach( $majors as $major ) {
+                        $cmd = "nvm use $major && ";
+                        $cmd .= '(npm list -g vitepress || npm install -g --unsafe-perm vitepress --no-interactive) ';
+                        $cmd .= '&& npm update -g vitepress --no-interactive < /dev/null';
+                        $hcpp->runuser( '', $cmd );
+                    }
+                });
             }
-            //$hcpp->run( "v-restart-proxy" );
+            
+            // Uninstall VitePress on supported NodeJS versions
+            if ( $args[0] == 'vitepress_uninstall' ) {
+
+                // Get list of installed and supported NodeJS versions
+                $versions = $hcpp->nodeapp->get_versions();
+                $majors = [];
+                foreach( $versions as $ver ) {
+                    $major = $hcpp->getLeftMost( $ver['installed'], '.' );
+                    if ( in_array( $major, $this->supported ) ) {
+                        $majors[] = $major;
+                    }
+                }
+
+                // Uninstall VitePress on supported NodeJS versions
+                $hcpp->nodeapp->do_maintenance( $this->supported, function( $stopped ) use( $hcpp, $majors ) {
+                    foreach( $majors as $major ) {
+                        $cmd = "nvm use $major && npm uninstall -g vitepress --no-interactive";
+                        $hcpp->runuser( '', $cmd );
+                    }
+                });
+            }
+
+            // Setup VitePress with the supported NodeJS on the given domain 
+            if ( $args[0] == 'vitepress_setup' ) {
+                
+            }
+
+            return $args;
+
+            // TODO: move vitepress_install and vitepress_uninstall to nodeapp as nodeapp_global_pkg_install( $supported_majors, $package_name )
+            // and nodeapp_global_pkg_uninstall( $supported_majors, $package_name )
+
+            
+            // if ( $args[0] != 'vitepress_quick_install' ) return $args;
+            // global $hcpp;
+            // $options = json_decode( $args[1], true );
+            // $user = $options['user'];
+            // $domain = $options['domain'];
+            // $vitepress_folder = $options['vitepress_folder'];
+            // if ( $vitepress_folder == '' || $vitepress_folder[0] != '/' ) $vitepress_folder = '/' . $vitepress_folder;
+            // $nodeapp_folder = "/home/$user/web/$domain/nodeapp";
+
+            // // Create parent nodeapp folder first this way to avoid CLI permissions issues
+            // mkdir( $nodeapp_folder, 0755, true );
+            // chown( $nodeapp_folder, $user );
+            // chgrp( $nodeapp_folder, $user );
+
+            // $vitepress_folder = $nodeapp_folder . $vitepress_folder;
+            // $vitepress_root = $hcpp->delLeftMost( $vitepress_folder, $nodeapp_folder ); 
+
+            // // Create the nodeapp folder and install vitepress
+            // $cmd = "mkdir -p $vitepress_folder ; cd $vitepress_folder && npm install vitepress";
+            // $hcpp->runuser( $user, $cmd );
+
+            // // Copy over nodeapp files
+            // $hcpp->copy_folder( __DIR__ . '/nodeapp', $vitepress_folder, $user );
+            // chmod( $nodeapp_folder, 0751 );
+
+            // // Update config.mjs base
+            // $config_mjs = file_get_contents( $vitepress_folder . '/docs/.vitepress/config.mjs' );
+            // $config_mjs = str_replace( '%base%', $vitepress_root, $config_mjs );
+            // file_put_contents( $vitepress_folder . '/docs/.vitepress/config.mjs', $config_mjs );
+
+            // // Cleanup, allocate ports, prepare nginx and start services
+            // $hcpp->nodeapp->shutdown_apps( $nodeapp_folder );
+            // $hcpp->nodeapp->allocate_ports( $nodeapp_folder );
+
+            // // Update proxy and restart nginx
+            // if ( $nodeapp_folder . '/' == $vitepress_folder ) {
+            //     $ext = $hcpp->run( "v-list-web-domain '$user' '$domain' json" )[$domain]['PROXY_EXT'];
+            //     $ext = str_replace( ' ', ',', $ext );
+            //     $hcpp->run( "v-change-web-domain-proxy-tpl '$user' '$domain' 'NodeApp' '$ext' 'no'" );
+            // }else{
+            //     $hcpp->nodeapp->generate_nginx_files( $nodeapp_folder );
+            //     $hcpp->nodeapp->startup_apps( $nodeapp_folder );
+            // }
+            // //$hcpp->run( "v-restart-proxy" );
         }       
 
         /**

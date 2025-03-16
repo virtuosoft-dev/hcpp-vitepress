@@ -33,7 +33,7 @@ class VitePressSetup extends BaseSetup {
 		$parse = explode( '/', $this->getDocRoot() );
 		$options['user'] = $parse[2];
 		$options['domain'] = $parse[4];
-		$hcpp->run( 'v-invoke-plugin vitepress_install ' . escapeshellarg( json_encode( $options ) ) );
+		$hcpp->run( 'v-invoke-plugin vitepress_quick_install ' . escapeshellarg( json_encode( $options ) ) );
 		return true;
 	}
 }
