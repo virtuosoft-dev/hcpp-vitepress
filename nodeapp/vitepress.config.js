@@ -5,6 +5,7 @@
  module.exports = {
     apps: (function() {
         let nodeapp = require('/usr/local/hestia/plugins/nodeapp/nodeapp.js')(__filename);
+        nodeapp.linkGlobalModules( ['vitepress'] );
         nodeapp.script = nodeapp.cwd + '/node_modules/vitepress/bin/vitepress.js';
         const fs = require('fs');
         let args = ' docs --port ' + nodeapp._port + ' --host ' + nodeapp._domain;

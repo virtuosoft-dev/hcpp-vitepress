@@ -1,4 +1,4 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
-
+/usr/local/hestia/bin/v-invoke-plugin vitepress_uninstall
 rm -rf /usr/local/hestia/web/src/app/WebApp/Installers/VitePress

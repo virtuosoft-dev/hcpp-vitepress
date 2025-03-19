@@ -15,7 +15,15 @@ class VitePressSetup extends BaseSetup {
 	protected $appname = "vitepress";
 	protected $config = [
 		"form" => [
-			"vitepress_folder" => ["type" => "text", "value" => "", "placeholder" => "/", "label" => "Install Directory"]
+			"vitepress_folder" => ["type" => "text", "value" => "", "placeholder" => "/", "label" => "Install Directory"],
+			"nodeJS_version" => [
+				"type" => "select",
+				"options" => [
+					"v18: LTS Hydrogen",
+					"v20: LTS Iron",
+					"v22: LTS Jod",
+				],
+			],
 		],
 		"database" => false,
 		"resources" => [
@@ -33,7 +41,7 @@ class VitePressSetup extends BaseSetup {
 		$parse = explode( '/', $this->getDocRoot() );
 		$options['user'] = $parse[2];
 		$options['domain'] = $parse[4];
-		$hcpp->run( 'v-invoke-plugin vitepress_quick_install ' . escapeshellarg( json_encode( $options ) ) );
+		$hcpp->run( 'v-invoke-plugin vitepress_setup ' . escapeshellarg( json_encode( $options ) ) );
 		return true;
 	}
 }
