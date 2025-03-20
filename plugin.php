@@ -3,7 +3,6 @@
  * Plugin Name: VitePress
  * Plugin URI: https://github.com/virtuosoft-dev/hcpp-vitepress
  * Description: Host and maintain updated VitePress websites.
- * Version: 1.0.0
  */
 
 // Register the install and uninstall scripts

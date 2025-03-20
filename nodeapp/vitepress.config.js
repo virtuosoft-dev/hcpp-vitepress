@@ -1,6 +1,6 @@
- /**
+/**
  * Get compatible PM2 app config object with automatic support for .nvmrc, 
- * port allocation, and debug mode.
+ * and port allocation.
  */
  module.exports = {
     apps: (function() {

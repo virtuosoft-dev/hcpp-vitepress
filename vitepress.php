@@ -10,7 +10,7 @@
  */
 
 if ( ! class_exists( 'VitePress') ) {
-    class VitePress extends HCPP_Hooks{
+    class VitePress extends HCPP_Hooks {
         public $supported = ['18','19','20','21','22'];
 
         /**
@@ -33,7 +33,7 @@ if ( ! class_exists( 'VitePress') ) {
                 $html = '<span class="u-mb10">Cannot continue. User "' . $user . '" must have bash login ability.</span>';
             }else{
                 $style = '<style>#webapp_php_version, label[for="webapp_php_version"]{display:none;}</style>';
-                $html .= '<div class="u-mb10">
+                $html =  '<div class="u-mb10">
                               The VitePress instance lives inside the "nodeapp" folder (next to "public_html"). It can be a
                               standalone instance in the domain root, or in a subfolder using the <b>Install Directory</b> 
                               field above.
@@ -66,7 +66,9 @@ if ( ! class_exists( 'VitePress') ) {
         }
 
         /**
-         * Setup VitePress with the given options
+         * Install, uninstall, or setup VitePress with the given options
+         * This can be invoked from the command line v-invoke-plugin and
+         * is used by the webapp installer.
          */
         public function hcpp_invoke_plugin( $args ) {
             if ( count( $args ) < 0 ) return $args;
