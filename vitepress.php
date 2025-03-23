@@ -104,14 +104,14 @@ if ( ! class_exists( 'VitePress') ) {
 
                 // Install VitePress on supported NodeJS versions
                 if ( count( $majors ) > 0 ) {
-                    $hcpp->nodeapp->do_maintenance( $majors, function( $stopped ) use( $hcpp, $majors ) {
+                    $hcpp->nodeapp->do_maintenance( function( $stopped ) use( $hcpp, $majors ) {
                         foreach( $majors as $major ) {
                             $cmd = "nvm use $major && ";
                             $cmd .= '(npm list -g vitepress || npm install -g --unsafe-perm vitepress --no-interactive) ';
                             $cmd .= '&& npm update -g vitepress --no-interactive < /dev/null';
                             $hcpp->runuser( '', $cmd );
                         }
-                    });
+                    }, $majors);
                 }
             }
             
@@ -129,12 +129,12 @@ if ( ! class_exists( 'VitePress') ) {
                 }
 
                 // Uninstall VitePress on supported NodeJS versions
-                $hcpp->nodeapp->do_maintenance( $this->supported, function( $stopped ) use( $hcpp, $majors ) {
+                $hcpp->nodeapp->do_maintenance( function( $stopped ) use( $hcpp, $majors ) {
                     foreach( $majors as $major ) {
                         $cmd = "nvm use $major && npm uninstall -g vitepress --no-interactive";
                         $hcpp->runuser( '', $cmd );
                     }
-                });
+                }, $this->supported );
             }
 
             // Setup VitePress with the supported NodeJS on the given domain 
@@ -221,6 +221,17 @@ if ( ! class_exists( 'VitePress') ) {
                 }
             }
             return $folders;
+        }
+
+        /**
+         * Check daily for VitePress updates and install them.
+         */
+        public function v_update_sys_queue( $args ) {
+            global $hcpp;
+            if ( ! (isset( $args[0] ) && trim( $args[0] ) == 'daily') ) return $args;
+            if ( strpos( $hcpp->run('v-list-sys-hestia-autoupdate'), 'Enabled') == false ) return $args;
+            $hcpp->run( 'v-invoke-plugin vitepress_install' );
+            return $args;
         }
     }
     global $hcpp;
