@@ -93,7 +93,7 @@ if ( ! class_exists( 'VitePress') ) {
                         $latest_pkg = $hcpp->getLeftMost( $latest_pkg, "\n" );
                         $current_pkg = trim( $hcpp->delLeftMost( $parse . '@', '@' ) );
                         $current_pkg = $hcpp->getLeftMost( $current_pkg, "\n" );
-
+                        $hcpp->log( "VitePress on v$major: $current_pkg vs $latest_pkg" );
 
                         // Check if vitepress is missing or outdated
                         if ( $current_pkg !== $latest_pkg ) {
@@ -226,12 +226,9 @@ if ( ! class_exists( 'VitePress') ) {
         /**
          * Check daily for VitePress updates and install them.
          */
-        public function v_update_sys_queue( $args ) {
+        public function nodeapp_autoupdate() {
             global $hcpp;
-            if ( ! (isset( $args[0] ) && trim( $args[0] ) == 'daily') ) return $args;
-            if ( strpos( $hcpp->run('v-list-sys-hestia-autoupdate'), 'Enabled') == false ) return $args;
             $hcpp->run( 'v-invoke-plugin vitepress_install' );
-            return $args;
         }
     }
     global $hcpp;
