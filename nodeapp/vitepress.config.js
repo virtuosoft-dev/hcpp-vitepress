@@ -8,7 +8,7 @@
         nodeapp.linkGlobalModules( ['vitepress'] );
         nodeapp.script = nodeapp.cwd + '/node_modules/vitepress/bin/vitepress.js';
         const fs = require('fs');
-        let args = ' docs --port ' + nodeapp._port + ' --host ' + nodeapp._domain;
+        let args = ' docs --port ' + nodeapp._port + ' --host 127.0.0.1';
         if ( fs.existsSync(nodeapp.cwd + '/.debug') ) {
             args = 'dev' + args;
         }else{

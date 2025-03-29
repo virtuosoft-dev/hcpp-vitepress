@@ -2,8 +2,10 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  server: {
-    host: true
+  vite: {
+    server: {
+      allowHosts: true
+    }
   },
   base: '%base%',
   title: "VitePress Site",
