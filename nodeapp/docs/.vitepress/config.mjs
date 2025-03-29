@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   vite: {
     server: {
-      allowHosts: true
+      allowedHosts: true
     }
   },
   base: '%base%',
